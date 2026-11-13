@@ -1,0 +1,98 @@
+@*
+    ---------------------------------------------------------------------------
+    Copyright © 2026 71 Degrees. All rights reserved.
+    ---------------------------------------------------------------------------
+*@
+
+@page "/admin/feedback"
+@attribute [Authorize(Policy = AccountServices.AdminPolicy)]
+@using Archivar.Core.Feedback
+@using Archivar.Core.Storage
+@inject IFeedbackRepository Feedback
+
+<PageTitle>Feedback - Archivar</PageTitle>
+
+<h1>Feedback</h1>
+<p class="app-muted">
+    Everything sent from the Feedback button and the contact form, newest first. Content reports are flagged. Mark an
+    item dealt with once you've acted on it. <a href="admin/users">Manage users</a> to disable an account.
+</p>
+
+@if (Done is not null)
+{
+    <p class="app-success">Marked as dealt with.</p>
+}
+else if (Error is not null)
+{
+    <p class="app-error">That item no longer exists.</p>
+}
+
+<div class="app-card">
+    <h2>Open (@_open.Count)</h2>
+    @if (_open.Count == 0)
+    {
+        <p class="app-muted">Nothing waiting.</p>
+    }
+    @foreach (var item in _open)
+    {
+        <div class="app-feedback-item">
+            <div class="app-feedback-meta app-small app-muted">
+                @if (item.IsContentReport)
+                {
+                    <span class="app-badge app-badge-report">Content report</span>
+                }
+                <span class="app-badge">@item.Source</span>
+                @item.SubmittedAt.ToString("yyyy-MM-dd HH:mm") UTC
+                · @(item.IsGuest ? "guest" : item.SubmitterName)
+                · @item.PageUrl
+            </div>
+            <p class="app-feedback-message">@item.Message</p>
+            <form method="post" action="admin/feedback/resolve" data-enhance-nav="false">
+                <AntiforgeryToken />
+                <input type="hidden" name="id" value="@item.Id" />
+                <button type="submit" class="app-btn app-btn-secondary">Mark dealt with</button>
+            </form>
+        </div>
+    }
+</div>
+
+<div class="app-card">
+    <h2>Dealt with (@_resolved.Count)</h2>
+    @if (_resolved.Count == 0)
+    {
+        <p class="app-muted">None yet.</p>
+    }
+    @foreach (var item in _resolved)
+    {
+        <div class="app-feedback-item">
+            <div class="app-feedback-meta app-small app-muted">
+                @if (item.IsContentReport)
+                {
+                    <span class="app-badge app-badge-report">Content report</span>
+                }
+                @item.SubmittedAt.ToString("yyyy-MM-dd HH:mm") UTC · @(item.IsGuest ? "guest" : item.SubmitterName)
+                · dealt with @item.ResolvedAt?.ToString("yyyy-MM-dd")
+            </div>
+            <p class="app-feedback-message">@item.Message</p>
+        </div>
+    }
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string? Done { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Error { get; set; }
+
+    private List<FeedbackSubmission> _open = [];
+    private List<FeedbackSubmission> _resolved = [];
+
+    // Reads every submission (uncached - admin only, occasional; see docs/performance.md).
+    protected override async Task OnInitializedAsync()
+    {
+        var all = await Feedback.ListAllAsync();
+        _open = all.Where(f => f.ResolvedAt is null).OrderByDescending(f => f.IsContentReport).ThenByDescending(f => f.SubmittedAt).ToList();
+        _resolved = all.Where(f => f.ResolvedAt is not null).ToList();
+    }
+}

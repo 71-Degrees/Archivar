@@ -1,0 +1,15 @@
+{
+  "siteName": "Archivar",
+  "solution": "Archivar.slnx",
+  "sourceFolders": [ "src", "tools" ],
+  "testFolders": [ "tests" ],
+  "skipFolders": [ "/tools/CodeQuality/", "/tools/WebCore/" ],
+  // The edges of the app and the command-line tools read the clock and make HTTP clients on purpose; those are not smells there.
+  "ruleExemptions": {
+    "DirectClock": [ "/tools/", "/Startup/" ],
+    "DirectHttpClient": [ "/tools/", "/Startup/" ]
+  },
+  // How the generated browser tests (`quality browser --generate`, run by `quality init`) sign in: the Development-only seed shortcut.
+  "browser": { "signInPath": "/dev/seed?as=admin" },
+  "toolCommand": "dotnet run --project tools/CodeQuality/src/Quality --"
+}

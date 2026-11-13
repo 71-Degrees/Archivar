@@ -1,0 +1,37 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.{cs,razor}]
+indent_size = 4
+
+[*.cs]
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_prefer_braces = true:suggestion
+dotnet_sort_system_directives_first = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+# Analyzer rules that do not fit an application (the analyzers run at "Recommended", see Directory.Build.props); each with its reason.
+[*.cs]
+# Tests are named as readable sentences with underscores on purpose.
+dotnet_diagnostic.CA1707.severity = none
+# LoggerMessage delegates for every log call: a micro-optimisation that is not worth the ceremony at this volume.
+dotnet_diagnostic.CA1848.severity = none
+dotnet_diagnostic.CA1873.severity = none
+# Constant array arguments: micro-allocation, not a quality problem.
+dotnet_diagnostic.CA1861.severity = none
+# Identifier and type-name conventions aimed at public libraries; this is an application.
+dotnet_diagnostic.CA1716.severity = none
+dotnet_diagnostic.CA1711.severity = none
+# "Could be static" only for private and internal members. A public method on a registered service must stay an instance method so callers can substitute, decorate or mock it.
+dotnet_code_quality.CA1822.api_surface = private, internal
+# "Use the concrete type" for speed: trades away programming to interfaces for a micro-optimisation no measurement has asked for.
+dotnet_diagnostic.CA1859.severity = none

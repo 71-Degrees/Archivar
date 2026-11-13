@@ -1,0 +1,75 @@
+@*
+    ---------------------------------------------------------------------------
+    Copyright © 2026 71 Degrees. All rights reserved.
+    ---------------------------------------------------------------------------
+*@
+
+@page "/account/data"
+@attribute [Authorize]
+@using Archivar.Core.Storage
+@inject IFeedbackRepository Feedback
+
+<PageTitle>Your data - Archivar</PageTitle>
+
+<h1>Your data</h1>
+
+@if (Deleted is not null)
+{
+    <div class="app-card">
+        <p class="app-success">Done - removed @Deleted feedback submission(s).</p>
+    </div>
+}
+
+<div class="app-card">
+    <p>Signed in as <strong>@_name</strong> (@_email).</p>
+    <p class="app-muted">Here's what Archivar has stored that's tied to your account:</p>
+    <ul>
+        <li>Your account: email, display name, role, whether your email is confirmed, and a hashed password if you set one.
+            See and change it on <a href="account">Your account</a>.</li>
+        <li>Feedback and contact messages you sent while signed in: <strong>@_feedbackCount</strong></li>
+    </ul>
+</div>
+
+<div class="app-card">
+    <h2>Delete my feedback</h2>
+    <p class="app-muted">
+        This permanently removes every feedback and contact message you sent while signed in. It can't be undone. Your
+        account itself isn't affected - to have it deleted, use the <a href="contact">contact form</a>.
+    </p>
+    @if (_feedbackCount == 0)
+    {
+        <p class="app-muted">There's nothing to delete right now.</p>
+    }
+    else
+    {
+        <form method="post" action="account/data/delete" data-enhance-nav="false">
+            <AntiforgeryToken />
+            <label class="app-check">
+                <input type="checkbox" name="confirm" value="true" required />
+                I understand this can't be undone
+            </label>
+            <button type="submit" class="app-btn app-btn-block">Delete my feedback</button>
+        </form>
+    }
+</div>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthStateTask { get; set; } = default!;
+
+    [SupplyParameterFromQuery]
+    private int? Deleted { get; set; }
+
+    private string? _name;
+    private string? _email;
+    private int _feedbackCount;
+
+    // One full scan of the feedback folder per visit (see docs/performance.md) - this page is rarely opened.
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthStateTask).User;
+        _name = user.Identity?.Name;
+        _email = user.FindFirstValue(ClaimTypes.Email);
+        _feedbackCount = await Feedback.CountBySubmitterAsync(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    }
+}

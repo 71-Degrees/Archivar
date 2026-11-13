@@ -1,0 +1,22 @@
+{
+  // What the shared deploy tool (tools/WebCore) needs to know about this app. Fill the targets in once Azure exists; see tools/WebCore/docs/deploy.md for every setting.
+  "app": "Archivar",
+  "webProject": "src/Archivar.Web",
+  "runtime": "win-x86",
+  "targets": {
+    "prod": { "app": "", "group": "", "url": "", "keyEnv": "ARCHIVAR_IMPORT_KEY" },
+    "stage": { "app": "", "group": "", "url": "", "keyEnv": "ARCHIVAR_IMPORT_KEY" }
+  },
+  "perfPages": [ "/", "/healthz" ],
+  // This app has no live sessions (no games or calls) a restart could interrupt, so deploys need no status endpoint and never wait.
+  "liveSessions": false,
+  "verify": {
+    "pages": [
+      { "path": "/", "name": "home page", "contains": [ "Archivar" ] },
+      { "path": "/healthz" },
+      { "path": "/terms" },
+      { "path": "/privacy" }
+    ],
+    "closedPages": [ "/admin/users", "/admin/notice", "/admin/releases", "/admin/feedback" ]
+  }
+}

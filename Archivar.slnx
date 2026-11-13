@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Archivar.Core/Archivar.Core.csproj" />
+    <Project Path="src/Archivar.Web/Archivar.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Archivar.Core.Tests/Archivar.Core.Tests.csproj" />
+    <Project Path="tests/Archivar.Web.Tests/Archivar.Web.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Deploy/Deploy.csproj" />
+  </Folder>
+</Solution>

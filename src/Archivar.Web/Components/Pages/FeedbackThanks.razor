@@ -1,0 +1,31 @@
+@*
+    ---------------------------------------------------------------------------
+    Copyright © 2026 71 Degrees. All rights reserved.
+    ---------------------------------------------------------------------------
+*@
+
+@page "/feedback/thanks"
+
+<PageTitle>Feedback - Archivar</PageTitle>
+
+<div class="app-card app-card-narrow app-center">
+    @if (Result == "sent")
+    {
+        <h1>Thanks!</h1>
+        <p>Your feedback was sent.</p>
+    }
+    else
+    {
+        <h1>Not sent</h1>
+        <p class="app-error">@FeedbackMessages.For(Result)</p>
+    }
+    <a class="app-btn" href="@LocalReturnUrl.Sanitize(ReturnUrl).TrimStart('/')">Back to where you were</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string? Result { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+}

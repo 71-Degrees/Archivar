@@ -1,0 +1,33 @@
+@*
+    ---------------------------------------------------------------------------
+    Copyright © 2026 71 Degrees. All rights reserved.
+    ---------------------------------------------------------------------------
+*@
+
+@inherits LayoutComponentBase
+
+<SiteBanner />
+
+<header class="app-header">
+    <a class="app-brand" href="">Archivar</a>
+    <AccountNav />
+</header>
+
+<main class="app-main">
+    @Body
+</main>
+
+<footer class="app-footer">
+    <a href="terms">Terms of Service</a>
+    <a href="privacy">Privacy Policy</a>
+    <a href="contact">Contact</a>
+    <span class="app-muted">&copy; 2026 71 Degrees</span>
+</footer>
+
+<FeedbackWidget />
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>

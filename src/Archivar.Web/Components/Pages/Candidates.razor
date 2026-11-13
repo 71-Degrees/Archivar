@@ -1,0 +1,50 @@
+@*
+    ---------------------------------------------------------------------------
+    Copyright © 2026 71 Degrees. All rights reserved.
+    ---------------------------------------------------------------------------
+*@
+
+@page "/candidates"
+@attribute [Authorize(Policy = AccountServices.AdminPolicy)]
+@using Archivar.Web.Archival
+@inject ArchivalReportService Report
+
+<PageTitle>Archive candidates - Archivar</PageTitle>
+
+<h1>Archive candidates</h1>
+
+@if (_report is null)
+{
+    <p>Loading…</p>
+}
+else
+{
+    <p class="app-muted">
+        @_report.Candidates.Count of @_report.ShowCount shows have never been viewed on
+        @string.Join(", ", _report.Servers) and are flagged for archival.
+        <strong>Sample data</strong> until Sonarr and the media servers are connected.
+    </p>
+
+    <table>
+        <thead>
+            <tr><th>Show</th><th>Size</th><th>Added</th><th>Path</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var show in _report.Candidates)
+            {
+                <tr>
+                    <td>@show.Title</td>
+                    <td>@((show.SizeBytes / 1073741824d).ToString("0.#")) GB</td>
+                    <td>@show.Added?.ToString("yyyy-MM-dd")</td>
+                    <td>@show.Path</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private ArchivalReport? _report;
+
+    protected override async Task OnInitializedAsync() => _report = await Report.BuildAsync(CancellationToken.None);
+}

@@ -1,0 +1,56 @@
+@*
+    ---------------------------------------------------------------------------
+    Copyright © 2026 71 Degrees. All rights reserved.
+    ---------------------------------------------------------------------------
+*@
+
+@page "/account/register"
+
+<PageTitle>Create an account - Archivar</PageTitle>
+
+<div class="app-card app-card-narrow">
+    <h1 class="app-center">Create an account</h1>
+
+    @if (Error is not null)
+    {
+        <p class="app-error">@Error</p>
+    }
+
+    <form method="post" action="account/register-submit" data-enhance-nav="false">
+        <AntiforgeryToken />
+        <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+
+        <label class="app-field" for="reg-name">Display name</label>
+        <input id="reg-name" class="app-input" name="displayName" required maxlength="@DisplayNames.MaxLength" autocomplete="nickname" value="@DisplayName" />
+
+        <label class="app-field" for="reg-email">Email</label>
+        <input id="reg-email" class="app-input" type="email" name="email" required autocomplete="email" value="@Email" />
+
+        <label class="app-field" for="reg-password">Password</label>
+        <input id="reg-password" class="app-input" type="password" name="password" required minlength="8" autocomplete="new-password" />
+        <p class="app-muted app-small">At least 8 characters.</p>
+
+        <label class="app-field" for="reg-confirm">Confirm password</label>
+        <input id="reg-confirm" class="app-input" type="password" name="confirmPassword" required autocomplete="new-password" />
+
+        <button type="submit" class="app-btn app-btn-block">Create account</button>
+    </form>
+
+    <p class="app-muted app-center">
+        Already have an account? <a href="@($"account/login?returnUrl={Uri.EscapeDataString(ReturnUrl ?? "/")}")">Sign in</a>
+    </p>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string? Error { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Email { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? DisplayName { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+}

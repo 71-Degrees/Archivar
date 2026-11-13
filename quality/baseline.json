@@ -1,0 +1,20 @@
+{
+  "Entries": {
+    "DirectClock|src/Archivar.Core/Accounts/AccountEmailService.cs|(file)": 1,
+    "DirectClock|src/Archivar.Core/Operations/MaintenanceService.cs|(file)": 1,
+    "DirectClock|src/Archivar.Web/Operations/MaintenanceEndpoints.cs|(file)": 1,
+    "DirectClock|src/Archivar.Web/Operations/OwnerSeed.cs|(file)": 2,
+    "DroppedTask|src/Archivar.Web/Logging/EmailAlertSink.cs|(file)": 2,
+    "DuplicateCode|src/Archivar.Core/Accounts/AccountEmailService.cs|dup a8be334b": 20,
+    "DuplicateCode|src/Archivar.Core/Accounts/AccountEmailService.cs|dup a8be334b #2": 20,
+    "DuplicateCode|src/Archivar.Web/Accounts/AccountEndpoints.cs|dup 0f6d1c00": 12,
+    "DuplicateCode|src/Archivar.Web/Accounts/AccountEndpoints.cs|dup 0f6d1c00 #2": 12,
+    "DuplicateCode|src/Archivar.Web/Accounts/AccountEndpoints.cs|dup 1597e61e": 12,
+    "DuplicateCode|src/Archivar.Web/Accounts/AccountEndpoints.cs|dup 23cad91e": 9,
+    "LongMethod|src/Archivar.Web/Accounts/AccountEndpoints.cs|AccountEndpoints.MapAccountEndpoints(1)": 284,
+    "LongMethod|src/Archivar.Web/Accounts/AccountEndpoints.cs|AccountEndpoints.MapAdminEndpoints(1)": 91,
+    "LongMethod|src/Archivar.Web/Accounts/AccountServices.cs|AccountServices.AddAccounts(2)": 135,
+    "LongMethod|src/Archivar.Web/Accounts/AccountServices.cs|lambda in AccountServices.AddAccounts(2)": 78,
+    "ManyParameters|src/Archivar.Core/Accounts/AccountEmailService.cs|AccountEmailService.AccountEmailService.ctor(10)": 10
+  }
+}

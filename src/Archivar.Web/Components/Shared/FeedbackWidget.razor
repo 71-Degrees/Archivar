@@ -1,0 +1,33 @@
+@*
+    ---------------------------------------------------------------------------
+    Copyright © 2026 71 Degrees. All rights reserved.
+    ---------------------------------------------------------------------------
+*@
+
+@* The feedback button on every page (ported from TriviaNight's floating widget). A native <details> disclosure and a plain
+   form post, so it needs no script and no interactive circuit. *@
+@inject NavigationManager Nav
+
+<details class="app-feedback">
+    <summary class="app-feedback-button" title="Send feedback">Feedback</summary>
+    <div class="app-feedback-panel">
+        <form method="post" action="feedback" data-enhance-nav="false">
+            <AntiforgeryToken />
+            <input type="hidden" name="page" value="@CurrentPath" />
+            <h2 class="app-feedback-title">Send feedback</h2>
+            <p class="app-muted app-small">Spotted a bug, or have an idea? Let us know.</p>
+            <label class="app-check">
+                <input type="checkbox" name="report" value="true" />
+                Report inappropriate content on this page
+            </label>
+            <label class="app-field" for="feedback-message">Message</label>
+            <textarea id="feedback-message" class="app-input" name="message" rows="4" required maxlength="@FeedbackService.MaxMessageLength"
+                      placeholder="What's on your mind?"></textarea>
+            <button type="submit" class="app-btn app-btn-block">Send</button>
+        </form>
+    </div>
+</details>
+
+@code {
+    private string CurrentPath => "/" + Nav.ToBaseRelativePath(Nav.Uri);
+}

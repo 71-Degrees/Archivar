@@ -1,0 +1,30 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+publish_out/
+publish.zip
+
+## Test / coverage output
+TestResults/
+*.trx
+coverage*.xml
+coverage*.json
+
+## Local dev data (never source)
+**/App_Data/
+
+## IDE
+.vs/
+.vscode/
+*.swp
+
+## Generated at build time by tools/Deploy (notes/build) - shipped in the publish output, never committed
+src/Archivar.Web/release-notes.json
+
+## Generated SBOM (tools/Deploy sbom) - regenerate on demand
+/sbom/
+
+## Quality tool output (reports, local state)
+reports/

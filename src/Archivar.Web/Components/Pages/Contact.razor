@@ -1,0 +1,48 @@
+@*
+    ---------------------------------------------------------------------------
+    Copyright © 2026 71 Degrees. All rights reserved.
+    ---------------------------------------------------------------------------
+*@
+
+@page "/contact"
+
+<PageTitle>Contact us - Archivar</PageTitle>
+<PageSeo Title="Contact Archivar" Description="Send a question or message to the Archivar team." />
+
+<div class="app-card">
+    <h1>Contact us</h1>
+
+    @if (Result == "sent")
+    {
+        <p class="app-success">Thanks - your message was sent.</p>
+        <a class="app-btn app-btn-secondary" href="">Back to home</a>
+    }
+    else
+    {
+        <p class="app-muted">
+            Questions about the <a href="privacy">Privacy Policy</a>, the <a href="terms">Terms of Service</a>, or anything
+            else - send a message below. If you'd like a reply, include an email address in your message; this form doesn't
+            ask for one separately.
+        </p>
+
+        @if (Result is not null)
+        {
+            <p class="app-error">@FeedbackMessages.For(Result)</p>
+        }
+
+        <form method="post" action="feedback" data-enhance-nav="false">
+            <AntiforgeryToken />
+            <input type="hidden" name="source" value="contact" />
+            <input type="hidden" name="page" value="/contact" />
+            <label class="app-field" for="contact-message">Message</label>
+            <textarea id="contact-message" class="app-input" name="message" rows="6" required maxlength="@FeedbackService.MaxMessageLength"
+                      placeholder="What's on your mind? Include your email if you'd like a reply."></textarea>
+            <button type="submit" class="app-btn app-btn-block">Send</button>
+        </form>
+    }
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string? Result { get; set; }
+}

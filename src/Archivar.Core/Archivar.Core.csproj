@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Communication.Email" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The shared web foundations (caching building blocks, release notes, server status), kept in the WebCore submodule so every 71 Degrees app stays in step. -->
+    <ProjectReference Include="..\..\tools\WebCore\src\WebCore\WebCore.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,121 @@
+@*
+    ---------------------------------------------------------------------------
+    Copyright © 2026 71 Degrees. All rights reserved.
+    ---------------------------------------------------------------------------
+*@
+
+@page "/admin/notice"
+@attribute [Authorize(Policy = AccountServices.AdminPolicy)]
+@using Archivar.Core.Operations
+@inject MaintenanceService Maintenance
+
+<PageTitle>Downtime notice - Archivar</PageTitle>
+
+<h1>Downtime notice</h1>
+<p class="app-muted">
+    Announce a planned outage: a banner shows on every page from now until the window ends, and you can email it too.
+    <a href="admin/users">Manage users</a> · <a href="admin/feedback">Feedback inbox</a>
+</p>
+
+@if (Error is not null)
+{
+    <p class="app-error">@(Error switch
+    {
+        "time" => "Please enter a valid start time.",
+        "past" => "That window has already ended.",
+        "long" => "Please keep the message under 500 characters.",
+        _ => "That didn't work - please try again.",
+    })</p>
+}
+else if (Done == "cleared")
+{
+    <p class="app-success">Notice cleared - the banner is gone.</p>
+}
+else if (Done == "set")
+{
+    <p class="app-success">
+        Notice set.
+        @if (Recipients is not null)
+        {
+            @if (Dry == 1)
+            {
+                <span>Email preview only - nothing was sent. It would go to @Recipients account(s).</span>
+            }
+            else
+            {
+                <span>Emailed @Sent of @Recipients account(s)@(Failed > 0 ? $"; {Failed} failed" : "").</span>
+            }
+        }
+    </p>
+}
+
+<div class="app-card">
+    <h2>Current notice</h2>
+    @if (_current is null)
+    {
+        <p class="app-muted">None - no banner is showing.</p>
+    }
+    else
+    {
+        <p>
+            <strong>@_current.StartsAt.ToString("ddd MMM d yyyy, HH:mm") UTC</strong> until
+            <strong>@_current.ExpiresAt.ToString("HH:mm") UTC</strong>
+        </p>
+        @if (!string.IsNullOrWhiteSpace(_current.Message))
+        {
+            <p>@_current.Message</p>
+        }
+        <form method="post" action="admin/notice/clear" data-enhance-nav="false">
+            <AntiforgeryToken />
+            <button type="submit" class="app-btn app-btn-secondary">Clear notice</button>
+        </form>
+    }
+</div>
+
+<div class="app-card">
+    <h2>@(_current is null ? "Set a notice" : "Replace the notice")</h2>
+    <form method="post" action="admin/notice/set" data-enhance-nav="false">
+        <AntiforgeryToken />
+        <label class="app-field" for="notice-start">Starts at (UTC)</label>
+        <input id="notice-start" class="app-input" type="datetime-local" name="startsAt" required value="@_suggestedStart" />
+        <p class="app-muted app-small">It's @DateTimeOffset.UtcNow.ToString("HH:mm") UTC now.</p>
+
+        <label class="app-field" for="notice-minutes">Expected length (minutes)</label>
+        <input id="notice-minutes" class="app-input" type="number" name="minutes" min="5" max="1440" value="30" />
+
+        <label class="app-field" for="notice-message">Message (optional)</label>
+        <textarea id="notice-message" class="app-input" name="message" rows="3" maxlength="500" placeholder="What people need to know"></textarea>
+
+        <label class="app-field" for="notice-email">Also email it to</label>
+        <select id="notice-email" class="app-select" name="email">
+            <option value="none">Nobody - banner only</option>
+            <option value="admins">Admins</option>
+            <option value="everyone">Everyone with a confirmed email</option>
+        </select>
+        <label class="app-check">
+            <input type="checkbox" name="preview" value="true" checked />
+            Preview only - show how many would get it, send nothing
+        </label>
+
+        <button type="submit" class="app-btn app-btn-block">Set notice</button>
+    </form>
+</div>
+
+@code {
+    [SupplyParameterFromQuery] private string? Error { get; set; }
+    [SupplyParameterFromQuery] private string? Done { get; set; }
+    [SupplyParameterFromQuery] private int? Recipients { get; set; }
+    [SupplyParameterFromQuery] private int? Sent { get; set; }
+    [SupplyParameterFromQuery] private int? Failed { get; set; }
+    [SupplyParameterFromQuery] private int? Dry { get; set; }
+
+    private MaintenanceNotice? _current;
+    private string _suggestedStart = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _current = await Maintenance.GetActiveAsync();
+        var inAnHour = DateTimeOffset.UtcNow.AddHours(1);
+        _suggestedStart = new DateTimeOffset(inAnHour.Year, inAnHour.Month, inAnHour.Day, inAnHour.Hour, 0, 0, TimeSpan.Zero).ToString("yyyy-MM-ddTHH:mm");
+    }
+}

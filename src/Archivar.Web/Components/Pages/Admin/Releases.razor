@@ -1,0 +1,147 @@
+@*
+    ---------------------------------------------------------------------------
+    Copyright © 2026 71 Degrees. All rights reserved.
+    ---------------------------------------------------------------------------
+*@
+
+@page "/admin/releases"
+@attribute [Authorize(Policy = AccountServices.AdminPolicy)]
+@using WebCore.Caching
+@using Archivar.Core.Operations
+@using WebCore.Operations
+@using Archivar.Web.Operations
+@inject ReleaseNotesService ReleaseNotes
+@inject SiteInfo Site
+
+<PageTitle>Release notes - Archivar</PageTitle>
+
+<h1>Release notes</h1>
+<p class="app-muted">
+    What's in each production deploy, from git (ported from TriviaNight). <a href="admin/users">Manage users</a> ·
+    <a href="admin/feedback">Feedback inbox</a> · <a href="admin/notice">Downtime notice</a>
+</p>
+
+<div class="app-card">
+    <h2>This server</h2>
+    <p>
+        Build
+        @if (Notes is not null && Site.CommitSha is { } sha)
+        {
+            <a href="@Notes.CommitUrl(sha)" target="_blank" rel="noopener noreferrer"><code>@Site.Version</code></a>
+        }
+        else
+        {
+            <code>@Site.Version</code>
+        }
+        · started @Site.StartedAt.ToString("yyyy-MM-dd HH:mm") UTC
+        · @StorageCalls.Total storage calls since
+    </p>
+    <details>
+        <summary>Caches since this server started</summary>
+        <table class="app-table">
+            <thead><tr><th>Cache</th><th>Hits</th><th>Misses</th><th>Hit %</th><th>Cleared</th></tr></thead>
+            <tbody>
+                @foreach (var cache in CacheRegistry.Snapshot())
+                {
+                    <tr>
+                        <td>@cache.Name</td>
+                        <td>@cache.Hits</td>
+                        <td>@cache.Misses</td>
+                        <td>@(cache.HitRatio is { } ratio ? (ratio * 100).ToString("N0") : "-")</td>
+                        <td>@cache.Invalidations</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <p class="app-muted app-small">A cache that never hits is dead weight; one at 90%+ is doing its job. See docs/performance.md.</p>
+    </details>
+</div>
+
+@if (Notes is null)
+{
+    <div class="app-card">
+        <p class="app-muted">
+            No release notes in this build. They're generated from git by <code>tools/Deploy build</code> (or
+            <code>tools/Deploy notes</code> for a local copy) and shipped as <code>release-notes.json</code>.
+        </p>
+    </div>
+}
+else
+{
+    <form class="app-card app-filter" method="get" action="admin/releases">
+        <label class="app-field" for="release-search">Search</label>
+        <input id="release-search" class="app-input" name="q" value="@Q" placeholder="Words from a change" />
+        <div class="app-filter-options">
+            @foreach (var category in Enum.GetValues<ChangeCategory>())
+            {
+                <label class="app-check">
+                    <input type="checkbox" name="show" value="@category" checked="@Shown.Contains(category)" />
+                    @CommitClassifier.Heading(category)
+                </label>
+            }
+        </div>
+        <button type="submit" class="app-btn app-btn-secondary">Filter</button>
+    </form>
+
+    @foreach (var release in Notes.Releases)
+    {
+        var commits = release.Commits.Where(Matches).ToList();
+        if (commits.Count == 0)
+        {
+            continue;
+        }
+
+        <details class="app-card" open="@(release == Notes.Releases[0])">
+            <summary class="app-release-title">
+                @(release.Name is null ? "In this build, not yet in production" : release.DeployedAt?.ToString("MMMM d, yyyy HH:mm") + " UTC")
+                <span class="app-muted app-small">@commits.Count change(s)</span>
+            </summary>
+            <p class="app-muted app-small">
+                @release.FilesChanged files, +@release.Insertions / -@release.Deletions lines
+                @if (Notes.CompareUrl(release) is { } compare)
+                {
+                    <span> · <a href="@compare" target="_blank" rel="noopener noreferrer">everything that changed on GitHub</a></span>
+                }
+            </p>
+            @foreach (var group in commits.GroupBy(c => c.Category).OrderBy(g => g.Key))
+            {
+                <h3 class="app-release-heading">@CommitClassifier.Heading(group.Key)</h3>
+                <ul>
+                    @foreach (var commit in group)
+                    {
+                        <li>
+                            @commit.Subject
+                            <a class="app-small" href="@Notes.CommitUrl(commit.Sha)" target="_blank" rel="noopener noreferrer"><code>@commit.ShortSha</code></a>
+                            <span class="app-muted app-small">@commit.Date.ToString("MMM d")</span>
+                            @if (!string.IsNullOrWhiteSpace(commit.Body))
+                            {
+                                <details>
+                                    <summary class="app-muted app-small">details</summary>
+                                    <p class="app-muted app-small app-preline">@commit.Body</p>
+                                </details>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </details>
+    }
+}
+
+@code {
+    [SupplyParameterFromQuery] private string? Q { get; set; }
+    [SupplyParameterFromQuery(Name = "show")] private string[]? Show { get; set; }
+
+    private ReleaseNotes? Notes => ReleaseNotes.Notes;
+
+    // Nothing ticked (first visit) = everything shown.
+    private HashSet<ChangeCategory> Shown => Show is { Length: > 0 }
+        ? Show.Select(s => Enum.TryParse<ChangeCategory>(s, out var c) ? c : (ChangeCategory?)null).OfType<ChangeCategory>().ToHashSet()
+        : Enum.GetValues<ChangeCategory>().ToHashSet();
+
+    private bool Matches(ReleaseCommit commit) =>
+        Shown.Contains(commit.Category)
+        && (string.IsNullOrWhiteSpace(Q)
+            || commit.Subject.Contains(Q, StringComparison.OrdinalIgnoreCase)
+            || commit.Body.Contains(Q, StringComparison.OrdinalIgnoreCase));
+}

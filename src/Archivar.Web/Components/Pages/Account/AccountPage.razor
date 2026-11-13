@@ -1,0 +1,147 @@
+@*
+    ---------------------------------------------------------------------------
+    Copyright © 2026 71 Degrees. All rights reserved.
+    ---------------------------------------------------------------------------
+*@
+
+@page "/account"
+@attribute [Authorize]
+@using Archivar.Core.Storage
+@inject IUserRepository Users
+
+<PageTitle>Your account - Archivar</PageTitle>
+
+<h1>Your account</h1>
+
+<div class="app-card">
+    <p><strong>@_name</strong> <span class="app-badge @(_role == UserRole.Admin ? "app-badge-admin" : null)">@_role</span></p>
+    <p class="app-muted">@_email</p>
+    <p class="app-small"><a href="account/data">Your data</a> - see what's stored about you and delete your feedback.</p>
+</div>
+
+<div class="app-card">
+    <h2>Email</h2>
+
+    @if (Confirmed == "1")
+    {
+        <p class="app-success">Email confirmed.</p>
+    }
+
+    @if (_emailConfirmed)
+    {
+        <p><strong>@_email</strong> is confirmed. To use a different address, confirm a code sent to it.</p>
+    }
+    else
+    {
+        <p>Your email isn't confirmed yet. We'll send a 6-digit code to prove it's yours.</p>
+    }
+
+    @if (EmailError is not null)
+    {
+        <p class="app-error app-small">@AccountMessages.ForCodeError(EmailError)</p>
+    }
+
+    @if (Step == "code")
+    {
+        <form method="post" action="account/email-verify" data-enhance-nav="false">
+            <AntiforgeryToken />
+            <input type="hidden" name="email" value="@Email" />
+            <p class="app-small">Enter the 6-digit code we sent to <strong>@Email</strong>.</p>
+            @if (!string.IsNullOrEmpty(DevCode))
+            {
+                <p class="app-note">Development only - email is not sent, so the code is <strong>@DevCode</strong>.</p>
+            }
+            <label class="app-field" for="confirm-code">Code</label>
+            <input id="confirm-code" class="app-input" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required placeholder="123456" />
+            <button type="submit" class="app-btn app-btn-block">Confirm</button>
+        </form>
+    }
+    else
+    {
+        <form method="post" action="account/email-send" data-enhance-nav="false">
+            <AntiforgeryToken />
+            <label class="app-field" for="confirm-email">Email address</label>
+            <input id="confirm-email" class="app-input" type="email" name="email" required maxlength="254" autocomplete="email" value="@(Email ?? _email)" />
+            <button type="submit" class="app-btn app-btn-block">@(_emailConfirmed ? "Change email" : "Send me a code")</button>
+        </form>
+    }
+</div>
+
+<div class="app-card">
+    <h2>Password</h2>
+
+    @if (PasswordDone == "1")
+    {
+        <p class="app-success">Password saved.</p>
+    }
+
+    @if (PasswordError is not null)
+    {
+        <p class="app-error app-small">@AccountMessages.ForPasswordError(PasswordError)</p>
+    }
+
+    <p class="app-small">
+        @(_hasPassword ? "Change your password. You'll need the current one - if you've forgotten it, sign out and use " : "You sign in with an emailed code. You can also set a password. (Forgot one later? ")
+        <a href="account/forgot">Forgot your password?</a>@(_hasPassword ? string.Empty : ")")
+    </p>
+    <form method="post" action="account/password-change" data-enhance-nav="false">
+        <AntiforgeryToken />
+        @if (_hasPassword)
+        {
+            <label class="app-field" for="pw-current">Current password</label>
+            <input id="pw-current" class="app-input" type="password" name="currentPassword" required autocomplete="current-password" />
+        }
+        <label class="app-field" for="pw-new">New password</label>
+        <input id="pw-new" class="app-input" type="password" name="password" required minlength="8" autocomplete="new-password" />
+        <label class="app-field" for="pw-confirm">Confirm new password</label>
+        <input id="pw-confirm" class="app-input" type="password" name="confirmPassword" required autocomplete="new-password" />
+        <button type="submit" class="app-btn app-btn-block">@(_hasPassword ? "Change password" : "Set a password")</button>
+    </form>
+</div>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthStateTask { get; set; } = default!;
+
+    [SupplyParameterFromQuery]
+    private string? Step { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Email { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? EmailError { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? DevCode { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Confirmed { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? PasswordError { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? PasswordDone { get; set; }
+
+    private bool _hasPassword;
+    private string? _name;
+    private string? _email;
+    private UserRole? _role;
+    private bool _emailConfirmed;
+
+    // Everything shown here comes from the sign-in claims - no storage read. Confirming or changing the email re-issues
+    // the cookie, so these are current.
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await AuthStateTask).User;
+        _name = user.Identity?.Name;
+        _email = user.FindFirstValue(ClaimTypes.Email);
+        _role = AccountClaims.RoleOf(user);
+        _emailConfirmed = user.HasClaim(AccountClaims.EmailConfirmed, "1");
+
+        // The one storage read: whether this account has a password (decides whether the form asks for the current one).
+        var id = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        _hasPassword = id is not null && !string.IsNullOrEmpty((await Users.GetByIdAsync(id))?.PasswordHash);
+    }
+}

@@ -1,0 +1,122 @@
+@*
+    ---------------------------------------------------------------------------
+    Copyright © 2026 71 Degrees. All rights reserved.
+    ---------------------------------------------------------------------------
+*@
+
+@page "/account/login"
+
+<PageTitle>Sign in - Archivar</PageTitle>
+
+<div class="app-card app-card-narrow">
+    <h1 class="app-center">Sign in</h1>
+
+    @if (Reset == "1")
+    {
+        <p class="app-success">Your password is changed. Sign in with it.</p>
+    }
+
+    @if (Error == "disabled")
+    {
+        <p class="app-error">This account has been disabled.</p>
+    }
+    else if (Error == "usepassword")
+    {
+        <p class="app-error">This is an admin account, so it signs in with its password.</p>
+    }
+    else if (Error == "ratelimited")
+    {
+        <p class="app-error">Too many attempts - please wait a few minutes and try again.</p>
+    }
+    else if (Error is not null)
+    {
+        <p class="app-error">Incorrect email or password.</p>
+    }
+
+    <form method="post" action="account/login-submit" data-enhance-nav="false">
+        <AntiforgeryToken />
+        <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+
+        <label class="app-field" for="login-email">Email</label>
+        <input id="login-email" class="app-input" type="email" name="email" required autocomplete="email" value="@Email" />
+
+        <label class="app-field" for="login-password">Password</label>
+        <input id="login-password" class="app-input" type="password" name="password" required autocomplete="current-password" />
+
+        <button type="submit" class="app-btn app-btn-block">Sign in</button>
+    </form>
+    <p class="app-small app-center"><a href="@($"account/forgot?email={Uri.EscapeDataString(Email ?? string.Empty)}")">Forgot your password?</a></p>
+
+    <hr class="app-divider" />
+
+    <h2 class="app-center">No password? Get a code</h2>
+    <p class="app-muted app-small app-center">We'll email you a 6-digit code. New here? The same code creates your account.</p>
+
+    @if (CodeError is not null)
+    {
+        <p class="app-error app-small">@CodeErrorMessage</p>
+    }
+
+    @if (Step == "code")
+    {
+        <form method="post" action="account/code-verify" data-enhance-nav="false">
+            <AntiforgeryToken />
+            <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+            <input type="hidden" name="email" value="@Email" />
+
+            <p class="app-small">Enter the 6-digit code we sent to <strong>@Email</strong>.</p>
+            @if (!string.IsNullOrEmpty(DevCode))
+            {
+                <p class="app-note">Development only - email is not sent, so the code is <strong>@DevCode</strong>.</p>
+            }
+            <label class="app-field" for="login-code">Code</label>
+            <input id="login-code" class="app-input" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required placeholder="123456" />
+            <label class="app-field" for="login-name">Display name <span class="app-muted">(new accounts only, optional)</span></label>
+            <input id="login-name" class="app-input" name="displayName" maxlength="@DisplayNames.MaxLength" autocomplete="nickname" />
+            <button type="submit" class="app-btn app-btn-block">Confirm code</button>
+        </form>
+    }
+    else
+    {
+        <form method="post" action="account/code-send" data-enhance-nav="false">
+            <AntiforgeryToken />
+            <input type="hidden" name="returnUrl" value="@ReturnUrl" />
+
+            <label class="app-field" for="code-email">Email</label>
+            <input id="code-email" class="app-input" type="email" name="email" required autocomplete="email" placeholder="you@example.com" value="@Email" />
+            <button type="submit" class="app-btn app-btn-secondary app-btn-block">Email me a code</button>
+        </form>
+    }
+
+    <p class="app-muted app-center">
+        Prefer a password? <a href="@($"account/register?returnUrl={Uri.EscapeDataString(ReturnUrl ?? "/")}")">Create an account</a>
+    </p>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string? Error { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Email { get; set; }
+
+    /// <summary>"1" right after a password reset.</summary>
+    [SupplyParameterFromQuery]
+    private string? Reset { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    /// <summary>"code" once a code has been sent and the code box should show.</summary>
+    [SupplyParameterFromQuery]
+    private string? Step { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? CodeError { get; set; }
+
+    /// <summary>Local development only: the endpoint puts the code here when email isn't being sent.</summary>
+    [SupplyParameterFromQuery]
+    private string? DevCode { get; set; }
+
+    private string CodeErrorMessage => AccountMessages.ForCodeError(CodeError);
+}

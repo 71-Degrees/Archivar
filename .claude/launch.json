@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "archivar",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/Archivar.Web", "--launch-profile", "http"],
+      "port": 5353
+    }
+  ]
+}

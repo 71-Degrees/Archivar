@@ -1,0 +1,32 @@
+@*
+    ---------------------------------------------------------------------------
+    Copyright © 2026 71 Degrees. All rights reserved.
+    ---------------------------------------------------------------------------
+*@
+
+@* The signed-in name (linking to the account page), the Admin link for admins, and sign out - or a sign-in link. *@
+<nav class="app-nav">
+    <AuthorizeView>
+        <Authorized>
+            <AuthorizeView Roles="@Roles.Admin" Context="adminContext">
+                <a href="admin/users">Admin</a>
+            </AuthorizeView>
+            @if (AccountClaims.IsMasquerading(context.User))
+            {
+                @* Viewing as someone else: the mask alone says so; pressing it resumes as the admin. A real form post - the cookie must be rewritten. *@
+                <form method="post" action="account/masquerade-stop" data-enhance-nav="false">
+                    <AntiforgeryToken />
+                    <button type="submit" class="app-link-button" title="Viewing as @context.User.Identity?.Name - click to resume as yourself" aria-label="Resume as yourself">🎭</button>
+                </form>
+            }
+            <a href="account">@context.User.Identity?.Name</a>
+            <form method="post" action="account/logout" data-enhance-nav="false">
+                <AntiforgeryToken />
+                <button type="submit" class="app-link-button">Sign out</button>
+            </form>
+        </Authorized>
+        <NotAuthorized>
+            <a href="account/login">Sign in</a>
+        </NotAuthorized>
+    </AuthorizeView>
+</nav>

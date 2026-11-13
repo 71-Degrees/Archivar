@@ -1,0 +1,21 @@
+@*
+    ---------------------------------------------------------------------------
+    Copyright © 2026 71 Degrees. All rights reserved.
+    ---------------------------------------------------------------------------
+*@
+
+<Router AppAssembly="typeof(Program).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+    <Found Context="routeData">
+        @* Static pages are protected by the authorization middleware ([Authorize] on the page redirects to sign-in);
+           AuthorizeRouteView covers the same attribute for anything rendered interactively. *@
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+            <NotAuthorized>
+                <div class="app-card app-card-narrow app-center">
+                    <p>You need to sign in to see this page.</p>
+                    <a class="app-btn" href="account/login">Sign in</a>
+                </div>
+            </NotAuthorized>
+        </AuthorizeRouteView>
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+</Router>

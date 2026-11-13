@@ -1,0 +1,149 @@
+@*
+    ---------------------------------------------------------------------------
+    Copyright © 2026 71 Degrees. All rights reserved.
+    ---------------------------------------------------------------------------
+*@
+
+@page "/admin/users"
+@attribute [Authorize(Policy = AccountServices.AdminPolicy)]
+@using Archivar.Core.Storage
+@inject IUserProfileRepository UserProfiles
+@inject IUserRepository Accounts
+
+<PageTitle>Manage users - Archivar</PageTitle>
+
+<h1>Manage users</h1>
+<p class="app-muted">
+    <a href="admin/feedback">Feedback inbox</a> · <a href="admin/notice">Downtime notice</a> · <a href="admin/releases">Release notes</a> ·
+    Everyone starts as a Member. Grant Admin to let someone manage accounts here too. Only people who've signed in at
+    least once show up below. You can't change your own role or disable yourself.
+    The mask button views the site as that account, exactly as they see it; click the mask in the header when you're done.
+</p>
+
+@if (Error is not null)
+{
+    <p class="app-error">@(Error switch
+    {
+        "self" => "You can't change your own account here.",
+        "unknown" => "That account no longer exists.",
+        "already" => "Resume as yourself first before viewing as someone else.",
+        "disabled" => "That account is disabled - re-enable it first if you need to see the site as them.",
+        _ => "That didn't work - please try again.",
+    })</p>
+}
+else if (Done is not null)
+{
+    <p class="app-success">@(Done switch
+    {
+        "role" => "Role updated.",
+        "disabled" => "Account disabled - it has been signed out everywhere.",
+        _ => "Account re-enabled.",
+    })</p>
+}
+
+<div class="app-card">
+    <h2>Active accounts (@_active.Count)</h2>
+    @if (_active.Count == 0)
+    {
+        <p class="app-muted">No one has signed in yet.</p>
+    }
+    @foreach (var profile in _active)
+    {
+        var isSelf = profile.UserId == _myUserId;
+        _accounts.TryGetValue(profile.UserId, out var account);
+        <div class="app-user-row">
+            <div>
+                <strong>@profile.DisplayName</strong>
+                @if (isSelf)
+                {
+                    <span class="app-muted">(you)</span>
+                }
+                <span class="app-badge @(profile.IsAdmin ? "app-badge-admin" : null)">@profile.Role</span>
+                <div class="app-muted app-small">
+                    @(account?.Email ?? "unknown email")
+                    · @(account?.EmailVerifiedAt is null ? "email not confirmed" : "email confirmed")
+                    · @(string.IsNullOrEmpty(account?.PasswordHash) ? "code sign-in" : "password")
+                </div>
+            </div>
+            @if (!isSelf)
+            {
+                <div class="app-row-actions">
+                    <form method="post" action="admin/users/role" data-enhance-nav="false">
+                        <AntiforgeryToken />
+                        <input type="hidden" name="userId" value="@profile.UserId" />
+                        <label class="app-small" for="role-@profile.UserId">Role</label>
+                        <select id="role-@profile.UserId" class="app-select app-select-inline" name="role">
+                            @foreach (var role in Enum.GetValues<UserRole>())
+                            {
+                                <option value="@role" selected="@(role == profile.Role)">@role</option>
+                            }
+                        </select>
+                        <button type="submit" class="app-btn app-btn-secondary">Save</button>
+                    </form>
+                    <form method="post" action="admin/users/masquerade" data-enhance-nav="false">
+                        <AntiforgeryToken />
+                        <input type="hidden" name="userId" value="@profile.UserId" />
+                        <button type="submit" class="app-btn app-btn-secondary" title="View the site as @profile.DisplayName" aria-label="Masquerade as @profile.DisplayName">🎭</button>
+                    </form>
+                    <form method="post" action="admin/users/disabled" data-enhance-nav="false">
+                        <AntiforgeryToken />
+                        <input type="hidden" name="userId" value="@profile.UserId" />
+                        <input type="hidden" name="disabled" value="true" />
+                        <button type="submit" class="app-btn app-btn-secondary">Disable</button>
+                    </form>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<div class="app-card">
+    <h2>Disabled accounts (@_disabled.Count)</h2>
+    @if (_disabled.Count == 0)
+    {
+        <p class="app-muted">None.</p>
+    }
+    @foreach (var profile in _disabled)
+    {
+        _accounts.TryGetValue(profile.UserId, out var account);
+        <div class="app-user-row">
+            <div>
+                <strong>@profile.DisplayName</strong>
+                <div class="app-muted app-small">@(account?.Email ?? "unknown email") · disabled @profile.DisabledAt?.ToString("yyyy-MM-dd")</div>
+            </div>
+            <form method="post" action="admin/users/disabled" data-enhance-nav="false">
+                <AntiforgeryToken />
+                <input type="hidden" name="userId" value="@profile.UserId" />
+                <input type="hidden" name="disabled" value="false" />
+                <button type="submit" class="app-btn app-btn-secondary">Re-enable</button>
+            </form>
+        </div>
+    }
+</div>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthStateTask { get; set; } = default!;
+
+    [SupplyParameterFromQuery]
+    private string? Error { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Done { get; set; }
+
+    private string? _myUserId;
+    private List<UserProfile> _active = [];
+    private List<UserProfile> _disabled = [];
+    private Dictionary<string, User> _accounts = [];
+
+    // Two cached list reads (profiles.all, users.all - see docs/performance.md). The actions post to the
+    // /admin/users/* endpoints, which re-check the Admin policy and the "not yourself" rule on the server.
+    protected override async Task OnInitializedAsync()
+    {
+        _myUserId = (await AuthStateTask).User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var all = await UserProfiles.ListAllAsync();
+        _active = all.Where(p => !p.IsDisabled).ToList();
+        _disabled = all.Where(p => p.IsDisabled).ToList();
+        _accounts = (await Accounts.ListAsync()).ToDictionary(u => u.Id);
+    }
+}

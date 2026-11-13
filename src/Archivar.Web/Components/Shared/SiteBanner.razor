@@ -1,0 +1,30 @@
+@*
+    ---------------------------------------------------------------------------
+    Copyright © 2026 71 Degrees. All rights reserved.
+    ---------------------------------------------------------------------------
+*@
+
+@* The scheduled-downtime banner on every page (ported from TriviaNight). Pages are static, so it's read once per page
+   load from a 30-second in-memory copy - no timer. *@
+@using Archivar.Core.Operations
+@inject MaintenanceService Maintenance
+
+@if (_notice is not null)
+{
+    <div class="app-site-banner" role="status">
+        Scheduled downtime: <strong>@_notice.StartsAt.ToString("ddd MMM d, HH:mm") UTC</strong>
+        for about @Minutes minutes.
+        @if (!string.IsNullOrWhiteSpace(_notice.Message))
+        {
+            <span>@_notice.Message</span>
+        }
+    </div>
+}
+
+@code {
+    private MaintenanceNotice? _notice;
+
+    private int Minutes => _notice is null ? 0 : (int)Math.Round((_notice.ExpiresAt - _notice.StartsAt).TotalMinutes);
+
+    protected override async Task OnInitializedAsync() => _notice = await Maintenance.GetActiveAsync();
+}

@@ -1,0 +1,71 @@
+@*
+    ---------------------------------------------------------------------------
+    Copyright © 2026 71 Degrees. All rights reserved.
+    ---------------------------------------------------------------------------
+*@
+
+@*
+    Per-page SEO/AI-discoverability block for the public, evergreen pages (see docs/ai-discoverability.md): a canonical
+    link, a meta description, Open Graph tags, and schema.org JSON-LD (WebPage + Organization + WebSite). Ported from
+    TriviaNight.
+
+    IMPORTANT: Blazor's <HeadContent>/<HeadOutlet> is a single last-writer-wins slot, not an accumulating list. If the
+    layout ever gets its own <HeadContent>, this component must stay a complete replacement for it, not "the extra bits".
+
+    The JSON-LD block is a data block (type="application/ld+json"), never executed, so the script-src 'self' CSP doesn't
+    apply to it. There's no og:image yet - add one (and the Organization logo) once Archivar has artwork.
+*@
+@using System.Text.Json.Nodes
+@inject NavigationManager Nav
+@inject SiteInfo Site
+
+<HeadContent>
+    <link rel="canonical" href="@CanonicalUrl" />
+    <meta name="description" content="@Description" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Archivar" />
+    <meta property="og:title" content="@Title" />
+    <meta property="og:description" content="@Description" />
+    <meta property="og:url" content="@CanonicalUrl" />
+    @JsonLd.Script(Schema)
+</HeadContent>
+
+@code {
+    /// <summary>Shown as the page's og:title and the JSON-LD WebPage's name.</summary>
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    /// <summary>A real, page-specific sentence - not the generic site tagline.</summary>
+    [Parameter, EditorRequired]
+    public string Description { get; set; } = string.Empty;
+
+    // Site:BaseUrl when configured, so the canonical address never becomes the *.azurewebsites.net name.
+    private string BaseUrl => Site.PublicUrl ?? Nav.BaseUri.TrimEnd('/');
+
+    private string CanonicalUrl => BaseUrl + "/" + Nav.ToBaseRelativePath(Nav.Uri).Split('?', '#')[0];
+
+    private JsonNode Schema => new JsonObject
+    {
+        ["@context"] = "https://schema.org",
+        ["@graph"] = new JsonArray(
+            new JsonObject
+            {
+                ["@type"] = "WebPage",
+                ["name"] = Title,
+                ["description"] = Description,
+                ["url"] = CanonicalUrl,
+            },
+            new JsonObject
+            {
+                ["@type"] = "Organization",
+                ["name"] = "71 Degrees",
+                ["url"] = BaseUrl,
+            },
+            new JsonObject
+            {
+                ["@type"] = "WebSite",
+                ["name"] = "Archivar",
+                ["url"] = BaseUrl,
+            }),
+    };
+}

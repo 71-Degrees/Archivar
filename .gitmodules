@@ -1,0 +1,6 @@
+[submodule "tools/WebCore"]
+	path = tools/WebCore
+	url = https://github.com/71-Degrees/WebCore.git
+[submodule "tools/CodeQuality"]
+	path = tools/CodeQuality
+	url = https://github.com/71-Degrees/CodeQuality.git

@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Archivar.Core\Archivar.Core.csproj" />
+    <!-- The shared ASP.NET Core foundations (scanner refusal, API-key gate, asset versioning) from the WebCore submodule. -->
+    <ProjectReference Include="..\..\tools\WebCore\src\WebCore.Hosting\WebCore.Hosting.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="3.1.2" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <UserSecretsId>43bf989b-084b-4d8d-880d-330b8fe61fc4</UserSecretsId>
+  </PropertyGroup>
+
+</Project>
