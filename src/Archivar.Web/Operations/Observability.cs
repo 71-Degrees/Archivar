@@ -4,7 +4,7 @@
  * ---------------------------------------------------------------------------
  */
 
-using Archivar.Core.Email;
+using WebCore.Email;
 using Archivar.Web.Accounts;
 using Archivar.Web.Logging;
 using Serilog;

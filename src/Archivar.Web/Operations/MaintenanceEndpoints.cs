@@ -7,8 +7,11 @@
 using WebCore.Hosting.Storage;
 using System.Globalization;
 using System.Security.Claims;
+using WebCore.Accounts;
 using WebCore.Caching;
-using Archivar.Core.Email;
+using WebCore.Email;
+using WebCore.Hosting.Accounts;
+using WebCore.Hosting.Security;
 using Archivar.Core.Operations;
 using Archivar.Core.Storage;
 using Archivar.Web.Accounts;
@@ -42,7 +45,7 @@ public static class MaintenanceEndpoints
 
     public static void MapMaintenanceEndpoints(this WebApplication app)
     {
-        var admin = app.MapFormGroup("/admin/notice").RequireAuthorization(AccountServices.AdminPolicy);
+        var admin = app.MapFormGroup("/admin/notice").RequireAuthorization(AccountPolicies.Admin);
 
         admin.MapPost("/set", async (HttpContext http, MaintenanceService maintenance, ILoggerFactory loggers) =>
         {

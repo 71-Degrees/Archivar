@@ -8,8 +8,9 @@ using System.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Archivar.Core.Accounts;
+using WebCore.Accounts;
 using WebCore.Caching;
-using Archivar.Core.Email;
+using WebCore.Email;
 using Archivar.Core.Storage;
 
 namespace Archivar.Core.Operations;
@@ -105,7 +106,7 @@ public class MaintenanceService : IDisposable
         var addresses = new List<string>();
         foreach (var profile in await _profiles.ListAllAsync(cancellationToken).ConfigureAwait(false))
         {
-            if (profile.IsDisabled || (audience == MaintenanceAudience.Admins && profile.Role != UserRole.Admin))
+            if (profile.IsDisabled || (audience == MaintenanceAudience.Admins && profile.Role != Roles.Admin))
             {
                 continue;
             }

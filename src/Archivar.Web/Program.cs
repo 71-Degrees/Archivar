@@ -5,6 +5,8 @@
  */
 
 using Archivar.Web;
+using WebCore.Accounts;
+using WebCore.Hosting.Accounts;
 using WebCore.Hosting.Security;
 using WebCore.Hosting.Storage;
 using Archivar.Core.Storage;
@@ -126,7 +128,7 @@ if (app.Environment.IsDevelopment() && !string.IsNullOrWhiteSpace(app.Configurat
             if (devUser is not null)
             {
                 // SignInAsync only sets the cookie for the next request; replace this request's principal too.
-                context.User = await AccountServices.SignInUserAsync(context, devUser);
+                context.User = await context.RequestServices.GetRequiredService<AccountSignIn>().SignInAsync(context, devUser);
             }
         }
 
@@ -137,7 +139,7 @@ if (app.Environment.IsDevelopment() && !string.IsNullOrWhiteSpace(app.Configurat
 app.UseAuthorization();
 app.UseAntiforgery();
 
-app.MapAccountEndpoints();
+app.MapWebCoreAccountEndpoints();
 app.MapFeedbackEndpoints();
 app.MapMaintenanceEndpoints();
 app.MapDevEndpoints();

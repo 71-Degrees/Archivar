@@ -5,7 +5,7 @@
 *@
 
 @page "/admin/feedback"
-@attribute [Authorize(Policy = AccountServices.AdminPolicy)]
+@attribute [Authorize(Policy = AccountPolicies.Admin)]
 @using Archivar.Core.Feedback
 @using Archivar.Core.Storage
 @inject IFeedbackRepository Feedback

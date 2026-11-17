@@ -9,6 +9,9 @@ using Archivar.Core.Accounts;
 using Archivar.Core.Feedback;
 using Archivar.Core.Storage;
 using Archivar.Web.Accounts;
+using WebCore.Accounts;
+using WebCore.Hosting.Accounts;
+using WebCore.Hosting.Security;
 
 namespace Archivar.Web.Feedback;
 
@@ -66,6 +69,6 @@ public static class FeedbackEndpoints
             var form = await http.Request.ReadFormAsync();
             var resolved = await repository.ResolveAsync(form["id"].ToString());
             return Results.Redirect("/admin/feedback" + (resolved ? "?done=1" : "?error=unknown"));
-        }).RequireAuthorization(AccountServices.AdminPolicy);
+        }).RequireAuthorization(AccountPolicies.Admin);
     }
 }

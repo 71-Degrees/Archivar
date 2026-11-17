@@ -76,7 +76,7 @@ Unset email = codes can't be emailed (dev shows them on screen). Account data li
 
 ## Task guides - read the one that matches BEFORE starting the work
 
-- **`docs/accounts.md`** - users, Member/Admin roles as claims, password and emailed-code sign-in, admin bootstrap, disabling, rate limits. Check roles through the role claim (`AccountServices.AdminPolicy`, `AuthorizeView Roles`), never the profile. A change to who
+- **`docs/accounts.md`** - users, Member/Admin roles as claims, password and emailed-code sign-in, admin bootstrap, disabling, rate limits. Check roles through the role claim (`AccountPolicies.Admin`, `AuthorizeView Roles`; the code is WebCore's accounts module), never the profile. A change to who
   can do what is flagged to the owner before a production deploy. Don't trigger real code emails locally: dev shows the code on screen.
 - **Feedback, contact, Terms, Privacy:** the Feedback button (`FeedbackWidget`) and `/contact` post to `/feedback`; admins read them at `/admin/feedback`, users see/delete theirs at `/account/data`. **Keep `/privacy` accurate:** any new data, cookie or third
   party gets a line there in the same change, and `/account/data` must cover any new per-user data.

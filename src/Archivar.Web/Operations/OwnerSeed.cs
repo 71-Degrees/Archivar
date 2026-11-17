@@ -6,6 +6,7 @@
 
 using Archivar.Core.Accounts;
 using Archivar.Core.Storage;
+using WebCore.Accounts;
 
 namespace Archivar.Web.Operations;
 
@@ -48,14 +49,14 @@ public static class OwnerSeed
     }
 
     public static Task<User> EnsureAsync(IUserRepository users, IUserProfileRepository profiles) =>
-        EnsureSeedAccountAsync(users, profiles, Email, DisplayName, UserRole.Admin, StoredPasswordHash());
+        EnsureSeedAccountAsync(users, profiles, Email, DisplayName, Roles.Admin, StoredPasswordHash());
 
     /// <summary>
     /// The one way a Development seed account is made sure of (PJJ here, the sample accounts in <see cref="DevEndpoints"/>):
     /// created if missing, email confirmed, given <paramref name="passwordHash"/> only when it has no password of its own,
     /// then its profile set to <paramref name="role"/> and re-enabled. Safe to run on every startup.
     /// </summary>
-    public static async Task<User> EnsureSeedAccountAsync(IUserRepository users, IUserProfileRepository profiles, string email, string name, UserRole role, string? passwordHash = null)
+    public static async Task<User> EnsureSeedAccountAsync(IUserRepository users, IUserProfileRepository profiles, string email, string name, string role, string? passwordHash = null)
     {
         var user = await users.GetByEmailAsync(email);
         if (user is null)

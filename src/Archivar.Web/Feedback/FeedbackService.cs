@@ -6,7 +6,7 @@
 
 using System.Collections.Concurrent;
 using System.Net;
-using Archivar.Core.Email;
+using WebCore.Email;
 using Archivar.Core.Feedback;
 using WebCore.RateLimiting;
 using Archivar.Core.Storage;

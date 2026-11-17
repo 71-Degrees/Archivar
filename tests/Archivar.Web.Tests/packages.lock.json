@@ -698,7 +698,8 @@
       "webcore": {
         "type": "Project",
         "dependencies": {
-          "Azure.Storage.Blobs": "[12.29.2, )"
+          "Azure.Storage.Blobs": "[12.29.2, )",
+          "Microsoft.Extensions.Logging.Abstractions": "[10.0.12, )"
         }
       },
       "webcore.hosting": {

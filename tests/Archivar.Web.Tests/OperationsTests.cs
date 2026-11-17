@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Archivar.Core.Email;
+using WebCore.Email;
 using Archivar.Web.Logging;
 using Serilog.Events;
 using Serilog.Parsing;

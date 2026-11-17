@@ -8,13 +8,14 @@
 @attribute [Authorize]
 @using Archivar.Core.Storage
 @inject IUserRepository Users
+@inject AccountClaims Claims
 
 <PageTitle>Your account - Archivar</PageTitle>
 
 <h1>Your account</h1>
 
 <div class="app-card">
-    <p><strong>@_name</strong> <span class="app-badge @(_role == UserRole.Admin ? "app-badge-admin" : null)">@_role</span></p>
+    <p><strong>@_name</strong> <span class="app-badge @(_role == Roles.Admin ?"app-badge-admin" : null)">@_role</span></p>
     <p class="app-muted">@_email</p>
     <p class="app-small"><a href="account/data">Your data</a> - see what's stored about you and delete your feedback.</p>
 </div>
@@ -127,7 +128,7 @@
     private bool _hasPassword;
     private string? _name;
     private string? _email;
-    private UserRole? _role;
+    private string? _role;
     private bool _emailConfirmed;
 
     // Everything shown here comes from the sign-in claims - no storage read. Confirming or changing the email re-issues
@@ -138,7 +139,7 @@
         _name = user.Identity?.Name;
         _email = user.FindFirstValue(ClaimTypes.Email);
         _role = AccountClaims.RoleOf(user);
-        _emailConfirmed = user.HasClaim(AccountClaims.EmailConfirmed, "1");
+        _emailConfirmed = Claims.IsEmailConfirmed(user);
 
         // The one storage read: whether this account has a password (decides whether the form asks for the current one).
         var id = user.FindFirstValue(ClaimTypes.NameIdentifier);

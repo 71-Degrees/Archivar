@@ -10,7 +10,7 @@ using System.Text;
 using Serilog.Core;
 using Serilog.Debugging;
 using Serilog.Events;
-using Archivar.Core.Email;
+using WebCore.Email;
 
 namespace Archivar.Web.Logging;
 

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using WebCore.Hosting.Security;
 
 namespace Archivar.Web.Tests;
 

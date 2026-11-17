@@ -5,7 +5,7 @@
 *@
 
 @page "/admin/users"
-@attribute [Authorize(Policy = AccountServices.AdminPolicy)]
+@attribute [Authorize(Policy = AccountPolicies.Admin)]
 @using Archivar.Core.Storage
 @inject IUserProfileRepository UserProfiles
 @inject IUserRepository Accounts
@@ -58,7 +58,7 @@ else if (Done is not null)
                 {
                     <span class="app-muted">(you)</span>
                 }
-                <span class="app-badge @(profile.IsAdmin ? "app-badge-admin" : null)">@profile.Role</span>
+                <span class="app-badge @(profile.Role == Roles.Admin ? "app-badge-admin" : null)">@profile.Role</span>
                 <div class="app-muted app-small">
                     @(account?.Email ?? "unknown email")
                     · @(account?.EmailVerifiedAt is null ? "email not confirmed" : "email confirmed")
@@ -73,7 +73,7 @@ else if (Done is not null)
                         <input type="hidden" name="userId" value="@profile.UserId" />
                         <label class="app-small" for="role-@profile.UserId">Role</label>
                         <select id="role-@profile.UserId" class="app-select app-select-inline" name="role">
-                            @foreach (var role in Enum.GetValues<UserRole>())
+                            @foreach (var role in Enum.GetNames<UserRole>())
                             {
                                 <option value="@role" selected="@(role == profile.Role)">@role</option>
                             }

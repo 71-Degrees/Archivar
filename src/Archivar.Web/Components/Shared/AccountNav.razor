@@ -4,6 +4,8 @@
     ---------------------------------------------------------------------------
 *@
 
+@inject AccountClaims Claims
+
 @* The signed-in name (linking to the account page), the Admin link for admins, and sign out - or a sign-in link. *@
 <nav class="app-nav">
     <AuthorizeView>
@@ -11,7 +13,7 @@
             <AuthorizeView Roles="@Roles.Admin" Context="adminContext">
                 <a href="admin/users">Admin</a>
             </AuthorizeView>
-            @if (AccountClaims.IsMasquerading(context.User))
+            @if (Claims.IsMasquerading(context.User))
             {
                 @* Viewing as someone else: the mask alone says so; pressing it resumes as the admin. A real form post - the cookie must be rewritten. *@
                 <form method="post" action="account/masquerade-stop" data-enhance-nav="false">

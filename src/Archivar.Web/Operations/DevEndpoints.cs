@@ -9,7 +9,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Archivar.Core.Accounts;
 using Archivar.Core.Feedback;
 using Archivar.Core.Storage;
-using Archivar.Web.Accounts;
+using WebCore.Accounts;
+using WebCore.Hosting.Accounts;
 
 namespace Archivar.Web.Operations;
 
@@ -52,8 +53,8 @@ public static class DevEndpoints
 
         app.MapGet("/dev/seed", async (HttpContext http, string? @as, string? to, IUserRepository users, IUserProfileRepository profiles, IFeedbackRepository feedback) =>
         {
-            var member = await OwnerSeed.EnsureSeedAccountAsync(users, profiles, SeedMemberEmail, "Seed Member", UserRole.Member);
-            var admin = await OwnerSeed.EnsureSeedAccountAsync(users, profiles, SeedAdminEmail, "Seed Admin", UserRole.Admin);
+            var member = await OwnerSeed.EnsureSeedAccountAsync(users, profiles, SeedMemberEmail, "Seed Member", Roles.Member);
+            var admin = await OwnerSeed.EnsureSeedAccountAsync(users, profiles, SeedAdminEmail, "Seed Admin", Roles.Admin);
 
             // Fixed ids, so seeding again overwrites instead of piling up copies.
             await feedback.SaveAsync(new FeedbackSubmission
@@ -76,7 +77,7 @@ public static class DevEndpoints
             http.Response.Cookies.Append(NoAutoLoginCookie, "1", new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Lax });
             var owner = await OwnerSeed.EnsureAsync(users, profiles);
             var target = @as?.ToLowerInvariant() switch { "admin" => admin, "pjj" => owner, _ => member };
-            await AccountServices.SignInUserAsync(http, target);
+            await http.RequestServices.GetRequiredService<AccountSignIn>().SignInAsync(http, target);
             return Results.LocalRedirect(LocalReturnUrl.Sanitize(to ?? (target == member ? "/account" : "/admin/users")));
         });
     }

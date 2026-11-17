@@ -4,9 +4,10 @@
  * ---------------------------------------------------------------------------
  */
 
+using WebCore.Accounts;
+using WebCore.Email;
 using WebCore.Storage;
 using Archivar.Core.Accounts;
-using Archivar.Core.Email;
 using Archivar.Core.Operations;
 using Archivar.Core.Storage;
 
@@ -23,7 +24,7 @@ public class MaintenanceTests : IDisposable
     public MaintenanceTests()
     {
         _users = new UserRepository(new FileDocumentStore(Path.Combine(_folder, "users")));
-        _profiles = new UserProfileRepository(new FileDocumentStore(Path.Combine(_folder, "profiles")));
+        _profiles = new UserProfileRepository(new FileDocumentStore(Path.Combine(_folder, "profiles")), Roles.All);
     }
 
     public void Dispose()
@@ -54,7 +55,7 @@ public class MaintenanceTests : IDisposable
     {
         var user = await _users.CreateAsync(new User { Email = email, DisplayName = email, EmailVerifiedAt = verified ? _now : null });
         await _profiles.EnsureProfileAsync(user.Id, email);
-        await _profiles.SetRoleAsync(user.Id, role);
+        await _profiles.SetRoleAsync(user.Id, role.ToString());
         if (disabled)
         {
             await _profiles.SetDisabledAsync(user.Id, true);

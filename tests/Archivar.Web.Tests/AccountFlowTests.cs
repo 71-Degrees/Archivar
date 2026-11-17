@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Archivar.Core.Storage;
+using WebCore.Accounts;
 
 namespace Archivar.Web.Tests;
 
@@ -169,7 +170,7 @@ public partial class AccountFlowTests(AccountAppFactory factory) : IClassFixture
         var memberId = (await factory.Services.GetRequiredService<IUserRepository>().GetByEmailAsync("viewed@example.com"))!.Id;
 
         var start = await PostFormAsync(admin, "/admin/users", "/admin/users/masquerade", new() { ["userId"] = memberId });
-        Assert.Equal("/wave", start.Headers.Location!.OriginalString);
+        Assert.Equal("/", start.Headers.Location!.OriginalString);
 
         // Now the member to every check: their name and role, no admin page - and the way back in the header.
         var account = await admin.GetStringAsync("/account");

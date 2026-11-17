@@ -10,8 +10,8 @@ empty or failed answer is never cached. Anything that decides who can do what: a
 
 | What | Cache | TTL | Cleared by | Copies |
 |---|---|---|---|---|
-| Profile per user / all profiles | `CachedUserProfileRepository` (`profiles.byUser`, `profiles.all`) | 30 s | any profile write (role, disable, ensure) | cloned |
-| Account list | `CachedUserRepository` (`users.all`) | 30 s | any account write | cloned |
+| Profile per user / all profiles | `CachedUserProfileRepository` (WebCore, `profiles.byUser`, `profiles.all`) | 30 s | any profile write (role, disable, ensure) | cloned |
+| Account list, and lookups by id served from it | `CachedUserRepository` (WebCore, `users.all`) | 30 s | any account write | cloned (a lookup copies only the account it finds) |
 | Downtime notice | `MaintenanceService` (`maintenanceNotice`) | 30 s | set / clear on this server | immutable per read (a new notice is a new object) |
 | Release notes | `ReleaseNotesService` (loaded once) | process life | a new build | read-only |
 
@@ -19,10 +19,10 @@ empty or failed answer is never cached. Anything that decides who can do what: a
 
 | Interface | Policy (Cached / HttpCached / Uncached) | Notes |
 |---|---|---|
-| `IUserProfileRepository` | Cached | read on **every** signed-in request (`OnValidatePrincipal`: disabled check + role claim sync) - this cache is what keeps that cheap |
-| `IUserRepository` | Cached (list only) | `GetByEmailAsync` is one file read (sign-in only). `GetByIdAsync` scans every account file - only used by email confirmation, never per request; revisit if accounts grow large |
+| `IUserProfileRepository` (WebCore) | Cached | read on **every** signed-in request (WebCore's `AccountSessionEvents`: disabled check + role claim sync) - this cache is what keeps that cheap |
+| `IUserRepository` (WebCore) | Cached (list, and lookups by id from it) | `GetByEmailAsync` is one file read (sign-in only). `GetByIdAsync` is served from the cached list, because the session check reads the account's security stamp on **every** signed-in request (since 2026-11-16); the list is read from storage at most once per 30 s |
 | `IMaintenanceStore` | Cached | one small file, read through `MaintenanceService` - at most once per 30 s whatever the traffic |
-| `IEmailSender` (Azure Communication Services) | Uncached | outside call; sign-in/confirmation codes (rate-limited in `AccountEmailService`) and feedback notifications (rate-limited in `FeedbackService`) |
+| `IEmailSender` (WebCore.Email; Azure Communication Services) | Uncached | outside call; sign-in/confirmation codes (rate-limited in WebCore's `AccountEmailService`) and feedback notifications (rate-limited in `FeedbackService`) |
 | `IFeedbackRepository` | Uncached | write-mostly. Reads scan every file: the admin inbox (`ListAllAsync`) and "Your data" (`CountBySubmitterAsync`) - both occasional, never on a public request path. Revisit if feedback volume grows |
 
 ## Static files

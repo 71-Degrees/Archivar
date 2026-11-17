@@ -5,7 +5,7 @@
 *@
 
 @page "/admin/notice"
-@attribute [Authorize(Policy = AccountServices.AdminPolicy)]
+@attribute [Authorize(Policy = AccountPolicies.Admin)]
 @using Archivar.Core.Operations
 @inject MaintenanceService Maintenance
 

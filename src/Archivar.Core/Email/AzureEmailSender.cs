@@ -5,6 +5,7 @@
  */
 
 using Azure.Communication.Email;
+using WebCore.Email;
 
 namespace Archivar.Core.Email;
 

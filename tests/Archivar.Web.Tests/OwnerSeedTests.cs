@@ -4,9 +4,9 @@
  * ---------------------------------------------------------------------------
  */
 
+using WebCore.Accounts;
 using WebCore.Storage;
 using Archivar.Core.Accounts;
-using Archivar.Core.Storage;
 using Archivar.Web.Operations;
 
 namespace Archivar.Web.Tests;
@@ -20,7 +20,7 @@ public sealed class OwnerSeedTests : IDisposable
     public OwnerSeedTests()
     {
         _users = new UserRepository(new FileDocumentStore(Path.Combine(_root, "users")));
-        _profiles = new UserProfileRepository(new FileDocumentStore(Path.Combine(_root, "profiles")));
+        _profiles = new UserProfileRepository(new FileDocumentStore(Path.Combine(_root, "profiles")), Roles.All);
     }
 
     public void Dispose()
@@ -41,7 +41,7 @@ public sealed class OwnerSeedTests : IDisposable
         Assert.Equal("PJJ", second.DisplayName);
         Assert.Equal(OwnerSeed.Email, second.Email);
         Assert.NotNull(second.EmailVerifiedAt);
-        Assert.Equal(UserRole.Admin, (await _profiles.GetAsync(second.Id))!.Role);
+        Assert.Equal(Roles.Admin, (await _profiles.GetAsync(second.Id))!.Role);
         Assert.Single(await _users.ListAsync());
     }
 
@@ -58,7 +58,7 @@ public sealed class OwnerSeedTests : IDisposable
         Assert.True(PasswordHasher.Verify("already mine", after!.PasswordHash));
         Assert.NotNull(after.EmailVerifiedAt);
         var profile = await _profiles.GetAsync(after.Id);
-        Assert.Equal(UserRole.Admin, profile!.Role);
+        Assert.Equal(Roles.Admin, profile!.Role);
         Assert.False(profile.IsDisabled);
     }
 }
