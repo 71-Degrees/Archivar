@@ -20,7 +20,7 @@ public partial class ForwardedHeadersTests(AccountAppFactory factory) : IClassFi
     [GeneratedRegex("name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"|name=\"__RequestVerificationToken\" value=\"([^\"]+)\"")]
     private static partial Regex TokenPattern();
 
-    private static async Task<string> TryPasswordAsync(HttpClient browser, string clientIp)
+    private static async Task<string> TryPasswordAsync(HttpClient browser, string clientIp, string email)
     {
         var match = TokenPattern().Match(await browser.GetStringAsync("/account/login"));
         var request = new HttpRequestMessage(HttpMethod.Post, "/account/login-submit")
@@ -28,7 +28,7 @@ public partial class ForwardedHeadersTests(AccountAppFactory factory) : IClassFi
             Content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
                 ["__RequestVerificationToken"] = match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value,
-                ["email"] = "nobody@example.com",
+                ["email"] = email,
                 ["password"] = "wrong password",
             }),
         };
@@ -43,12 +43,13 @@ public partial class ForwardedHeadersTests(AccountAppFactory factory) : IClassFi
         await using var site = factory.WithWebHostBuilder(b => b.UseSetting("FORWARDEDHEADERS_ENABLED", "true"));
         var browser = site.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
+        // A different account each time, so it is the address's allowance that runs out (one account has its own allowance from any address).
         for (var i = 0; i < 10; i++)
         {
-            Assert.StartsWith("/account/login?error=1", await TryPasswordAsync(browser, "203.0.113.10"));
+            Assert.StartsWith("/account/login?error=1", await TryPasswordAsync(browser, "203.0.113.10", $"nobody{i}@example.com"));
         }
 
-        Assert.StartsWith("/account/login?error=ratelimited", await TryPasswordAsync(browser, "203.0.113.10"));
-        Assert.StartsWith("/account/login?error=1", await TryPasswordAsync(browser, "198.51.100.20"));
+        Assert.StartsWith("/account/login?error=ratelimited", await TryPasswordAsync(browser, "203.0.113.10", "nobody10@example.com"));
+        Assert.StartsWith("/account/login?error=1", await TryPasswordAsync(browser, "198.51.100.20", "somebody@example.com"));
     }
 }
