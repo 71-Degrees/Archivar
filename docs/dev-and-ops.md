@@ -82,7 +82,7 @@ against a published build. A `--url` run keeps its own timing history, so it nev
 ## Dependency hygiene
 
 NuGet Audit fails the build on a known-vulnerable package, direct or transitive (`Directory.Build.props`); lock files
-are committed and `tools/Deploy check` restores `--locked-mode`; `nuget.config` pins nuget.org; `global.json` pins the SDK exactly (`rollForward: disable`). There is no hosted CI and
+are committed and `tools/Deploy check` restores `--locked-mode`; `nuget.config` pins nuget.org; `global.json` holds the SDK to the .NET 10 line (10.0.401 or newer, `rollForward: latestFeature`; never .NET 11). There is no hosted CI and
 no Dependabot: the pre-push hook is the only gate, and a package bump is a deliberate commit (edit the version, `dotnet restore --force-evaluate`, commit the lock files with it, run `check`). An SBOM is generated on demand (`tools/Deploy -- sbom`), never committed - a snapshot goes stale.
 
 ## Behind a proxy: the real client IP
