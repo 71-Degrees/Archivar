@@ -15,8 +15,8 @@
 
 const DEFAULT_PAUSE_MS = 350;
 
-for (const form of document.querySelectorAll('form[data-search-as-you-type]')) {
-  const box = form.querySelector('input[type="search"], input[name="q"]');
+for (const form of /** @type {NodeListOf<HTMLFormElement>} */ (document.querySelectorAll('form[data-search-as-you-type]'))) {
+  const box = /** @type {HTMLInputElement | null} */ (form.querySelector('input[type="search"], input[name="q"]'));
   if (!box) continue;
   const pause = Number(form.getAttribute('data-search-pause')) || DEFAULT_PAUSE_MS;
   const key = `search-focus:${location.pathname}`;
@@ -37,7 +37,7 @@ for (const form of document.querySelectorAll('form[data-search-as-you-type]')) {
   box.setAttribute('autocomplete', 'off');
   box.addEventListener('input', (event) => {
     clearTimeout(timer);
-    if (!event.isComposing) timer = setTimeout(search, pause);
+    if (!(/** @type {InputEvent} */ (event)).isComposing) timer = setTimeout(search, pause);
   });
   box.addEventListener('compositionend', () => { clearTimeout(timer); timer = setTimeout(search, pause); });
   form.addEventListener('submit', () => clearTimeout(timer));
