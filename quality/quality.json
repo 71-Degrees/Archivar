@@ -11,5 +11,5 @@
   },
   // How the generated browser tests (`quality browser --generate`, run by `quality init`) sign in: the Development-only seed shortcut.
   "browser": { "signInPath": "/dev/seed?as=admin" },
-  "toolCommand": "dotnet run --project tools/CodeQuality/src/Quality --"
+  "toolCommand": "dotnet C:/71Degrees/published/quality/bin/Quality.dll"
 }

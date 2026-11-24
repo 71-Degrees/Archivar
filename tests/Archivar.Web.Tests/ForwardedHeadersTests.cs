@@ -7,6 +7,9 @@
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+using WebCore.Hosting.Accounts;
 
 namespace Archivar.Web.Tests;
 
@@ -40,7 +43,10 @@ public partial class ForwardedHeadersTests(AccountAppFactory factory) : IClassFi
     [Fact]
     public async Task WithForwardedHeadersOn_OneClientHittingTheLimit_DoesNotLockOutAnother()
     {
-        await using var site = factory.WithWebHostBuilder(b => b.UseSetting("FORWARDEDHEADERS_ENABLED", "true"));
+        // The production limits are put back for this test (the shared host lifts them for the account flows): the per-address limit is what it tests.
+        await using var site = factory.WithWebHostBuilder(b => b
+            .UseSetting("FORWARDEDHEADERS_ENABLED", "true")
+            .ConfigureTestServices(services => services.AddSingleton(new AccountRateLimits(new AccountOptions()))));
         var browser = site.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
         // A different account each time, so it is the address's allowance that runs out (one account has its own allowance from any address).

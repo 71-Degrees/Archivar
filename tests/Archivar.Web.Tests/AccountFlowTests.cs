@@ -8,9 +8,11 @@ using System.Net;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Archivar.Core.Storage;
 using WebCore.Accounts;
+using WebCore.Hosting.Accounts;
 
 namespace Archivar.Web.Tests;
 
@@ -32,6 +34,14 @@ public sealed class AccountAppFactory : WebApplicationFactory<Program>
         builder.UseSetting("Auth:AdminEmails", AdminEmail);
         builder.UseSetting("Auth:DevAutoLoginEmail", string.Empty);
         builder.UseSetting("DevSeed:Enabled", "false");
+
+        // Every test in a class shares this app and one loopback address, so WebCore's production limits (per address and, since
+        // 2026-11-21, per account) would trip mid-class. The limits are tested in WebCore; here they are lifted so the flows under
+        // test are what fails. The same lift as CrateDigger's account tests.
+        builder.UseSetting("AccountEmail:MaxPerClientPerHour", "100000");
+        builder.UseSetting("AccountEmail:MaxPerHour", "100000");
+        builder.UseSetting("AccountEmail:MaxPerDay", "1000000");
+        builder.ConfigureTestServices(services => services.AddSingleton(new AccountRateLimits(new AccountOptions { AttemptScale = 1000, SharedAttemptCeiling = 1_000_000 })));
     }
 
     protected override void Dispose(bool disposing)
